@@ -117,7 +117,12 @@ function localizeTimeline(timeline, language) {
 }
 
 function recommendationFromScore(score, risks) {
-  if (risks.some((risk) => /fuera de freelancer|informacion sensible/i.test(risk))) {
+  if (
+    risks.some((risk) => {
+      const normalizedRisk = normalizeText(risk);
+      return /fuera de freelancer|informacion sensible/.test(normalizedRisk);
+    })
+  ) {
     return 'Rechazar';
   }
   if (score >= 75) return 'Aprobar';

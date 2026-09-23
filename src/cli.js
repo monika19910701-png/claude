@@ -12,7 +12,7 @@ function printHelp() {
   npm start -- prepare-approval <ruta-approval-json>
 
 Archivos por defecto:
-  Profile: /home/runner/work/claude/claude/data/profile.json`);
+  Profile: ./data/profile.json (resuelto relativo al proyecto)`);
 }
 
 function getProfile(profilePath) {

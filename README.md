@@ -21,38 +21,38 @@ Instalar dependencias no es necesario porque el MVP usa solo módulos nativos.
 ### Revisar perfil
 
 ```bash
-cd /home/runner/work/claude/claude
+cd claude
 npm start -- review-profile
 ```
 
 ### Analizar un proyecto
 
 ```bash
-cd /home/runner/work/claude/claude
-npm start -- analyze-job /home/runner/work/claude/claude/data/sample-job.json
+cd claude
+npm start -- analyze-job ./data/sample-job.json
 ```
 
 ### Generar propuesta
 
 ```bash
-cd /home/runner/work/claude/claude
-npm start -- draft-proposal /home/runner/work/claude/claude/data/sample-job.json
+cd claude
+npm start -- draft-proposal ./data/sample-job.json
 ```
 
 ### Preparar solicitud de aprobación
 
 ```bash
-cd /home/runner/work/claude/claude
-npm start -- prepare-approval /home/runner/work/claude/claude/data/sample-approval.json
+cd claude
+npm start -- prepare-approval ./data/sample-approval.json
 ```
 
 ## Estructura
 
-- `/home/runner/work/claude/claude/src/cli.js`: interfaz CLI
-- `/home/runner/work/claude/claude/src/workflow.js`: reglas de análisis y borradores
-- `/home/runner/work/claude/claude/data/profile.json`: perfil profesional base
-- `/home/runner/work/claude/claude/data/sample-job.json`: ejemplo de proyecto
-- `/home/runner/work/claude/claude/data/sample-approval.json`: ejemplo de aprobación
+- `src/cli.js`: interfaz CLI
+- `src/workflow.js`: reglas de análisis y borradores
+- `data/profile.json`: perfil profesional base
+- `data/sample-job.json`: ejemplo de proyecto
+- `data/sample-approval.json`: ejemplo de aprobación
 
 ## Próximo paso recomendado
 
