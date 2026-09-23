@@ -184,7 +184,7 @@ Rutas del worker:
 - `/`: devuelve metadatos del servicio
 - `/health`: devuelve un estado básico `ok: true`
 
-Además, el repositorio incluye `dist/index.html`, `dist/style.css` y `dist/app.js`, y también mantiene `public/index.html`, `public/style.css` y `public/app.js` como fallback convencional. La configuración declara `dist/` tanto en `wrangler.toml` como en `wrangler.jsonc`, usando `pages_build_output_dir`, `assets.directory`, `binding = "STATIC_ASSETS"`, manejo SPA básico y configuración explícita de `env.preview` junto con un bloque `previews` vacío para cubrir entornos de Cloudflare que prioricen configuración tipo Workers, Pages-like build, previews de Wrangler o detección estándar sobre `public/`.
+Además, el repositorio incluye `dist/index.html`, `dist/style.css` y `dist/app.js`, y también mantiene `public/index.html`, `public/style.css` y `public/app.js` como fallback convencional. La configuración declara `dist/` tanto en `wrangler.toml` como en `wrangler.jsonc`, usando `assets.directory`, `binding = "STATIC_ASSETS"`, manejo SPA básico y configuración explícita de `env.preview` junto con un bloque `previews` vacío para cubrir entornos de Cloudflare que despliegan Workers con assets estáticos o detectan directorios convencionales como `public/`, sin activar modo Pages para `wrangler deploy`.
 
 Este worker es intencionalmente mínimo para que el build de Cloudflare tenga una entrada compatible, sin depender de módulos de Node no soportados en Workers.
 
