@@ -184,7 +184,7 @@ Rutas del worker:
 - `/`: devuelve metadatos del servicio
 - `/health`: devuelve un estado básico `ok: true`
 
-Además, el repositorio incluye `dist/index.html`, `dist/style.css` y `dist/app.js` y declara `dist/` tanto en `wrangler.toml` como en `wrangler.jsonc`, usando `pages_build_output_dir` y `assets.directory` para cubrir entornos de Cloudflare que prioricen configuración tipo Workers o tipo Pages-like build.
+Además, el repositorio incluye `dist/index.html`, `dist/style.css` y `dist/app.js` y declara `dist/` tanto en `wrangler.toml` como en `wrangler.jsonc`, usando `pages_build_output_dir`, `assets.directory` y un bloque `previews` vacío para cubrir entornos de Cloudflare que prioricen configuración tipo Workers, Pages-like build o previews de Wrangler.
 
 Este worker es intencionalmente mínimo para que el build de Cloudflare tenga una entrada compatible, sin depender de módulos de Node no soportados en Workers.
 
