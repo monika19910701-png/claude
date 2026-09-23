@@ -7,3 +7,11 @@ pages_build_output_dir = "./dist"
 
 [assets]
 directory = "./dist"
+binding = "ASSETS"
+html_handling = "drop-trailing-slash"
+not_found_handling = "single-page-application"
+
+[env.preview]
+name = "claude-preview"
+workers_dev = true
+preview_urls = true
