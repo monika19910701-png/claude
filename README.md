@@ -118,16 +118,21 @@ Opciones útiles:
 
 ### Modo real
 
-Usa un adaptador HTTP separado de la lógica de negocio. Configura:
+Usa un adaptador HTTP separado de la lógica de negocio. Puedes configurarlo con variables de entorno o con flags del CLI:
 
-- `FREELANCER_API_BASE_URL`
-- `FREELANCER_API_TOKEN`
+- `FREELANCER_API_BASE_URL` o `--base-url=https://...`
+- `FREELANCER_API_TOKEN` o `--token=...`
 
-Y ejecuta, por ejemplo:
+Ejemplos:
 
 ```bash
 cd claude
 FREELANCER_API_BASE_URL=https://example.invalid FREELANCER_API_TOKEN=token npm start -- list-jobs --mode=real
+```
+
+```bash
+cd claude
+npm start -- list-jobs --mode=real --base-url=https://example.invalid --token=token
 ```
 
 El adaptador real espera estos endpoints:

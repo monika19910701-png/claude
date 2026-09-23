@@ -123,6 +123,18 @@ test('analyzeJob flags suspicious payment terms and low budget patterns', () => 
   assert.equal(result.recommendation, 'Rechazar');
 });
 
+test('analyzeJob flags low budgets defined only with minBudget', () => {
+  const result = analyzeJob(profile, {
+    title: 'Small range data entry task',
+    description: 'Simple spreadsheet cleanup.',
+    skills: ['Data Entry'],
+    minBudget: 10,
+    client: { paymentVerified: true }
+  });
+
+  assert.ok(result.risks.some((risk) => /presupuesto potencialmente demasiado bajo/i.test(risk)));
+});
+
 test('analyzeJob does not flag generic Gmail-related work as off-platform contact', () => {
   const result = analyzeJob(profile, {
     title: 'Gmail inbox cleanup',

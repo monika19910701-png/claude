@@ -88,7 +88,11 @@ function detectRisks(job) {
   if (suspiciousPaymentTerms.test(description)) {
     risks.push('Condiciones de pago potencialmente riesgosas o fuera del flujo normal');
   }
-  if ((job.budget !== undefined && job.budget <= 15) || (job.maxBudget !== undefined && job.maxBudget <= 15)) {
+  if (
+    (job.budget !== undefined && job.budget <= 15) ||
+    (job.minBudget !== undefined && job.minBudget <= 15) ||
+    (job.maxBudget !== undefined && job.maxBudget <= 15)
+  ) {
     risks.push('Presupuesto potencialmente demasiado bajo para el alcance esperado');
   }
   if ((/urgent|asap|inmediat|urgente/.test(description) || /urgent|asap|inmediat|urgente/.test(normalizeText(job.title))) && !hasBudgetInfo(job)) {

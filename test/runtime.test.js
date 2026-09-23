@@ -82,6 +82,32 @@ test('invalid jobs are rejected before saving drafts', async () => {
   await assert.rejects(() => listOpportunities({ statePath, jobsPath }), /job.title/);
 });
 
+test('listOpportunities rejects invalid payloads from real mode too', async () => {
+  const server = http.createServer((req, res) => {
+    if (req.method === 'GET' && req.url === '/jobs') {
+      res.setHeader('Content-Type', 'application/json');
+      res.end(JSON.stringify([{ id: 'REMOTE-BAD', title: '', description: 'broken payload', skills: [] }]));
+      return;
+    }
+
+    res.statusCode = 404;
+    res.end('not found');
+  });
+
+  await new Promise((resolve) => server.listen(0, resolve));
+  const address = server.address();
+  const baseUrl = `http://127.0.0.1:${address.port}`;
+
+  try {
+    await assert.rejects(
+      () => listOpportunities({ mode: 'real', baseUrl, token: 'token', statePath: makeTempStatePath() }),
+      /job.title/
+    );
+  } finally {
+    await new Promise((resolve, reject) => server.close((error) => (error ? reject(error) : resolve())));
+  }
+});
+
 test('real integration factory returns remote adapter and enforces configuration', async () => {
   const integration = createFreelancerIntegration({ mode: 'real' });
   assert.equal(integration.mode, 'real');
