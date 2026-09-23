@@ -184,7 +184,7 @@ Rutas del worker:
 - `/`: devuelve metadatos del servicio
 - `/health`: devuelve un estado básico `ok: true`
 
-Además, el repositorio incluye `public/index.html` y declara `public/` como carpeta estática mediante `[site].bucket` en `wrangler.toml` para que Workers Builds también detecte un directorio válido de archivos estáticos cuando el servicio lo espera.
+Además, el repositorio incluye `dist/index.html`, `dist/style.css` y `dist/app.js` y declara `dist/` como carpeta estática mediante `[assets].directory` en `wrangler.toml` para que Workers Builds también detecte un directorio válido de archivos estáticos cuando el servicio lo espera.
 
 Este worker es intencionalmente mínimo para que el build de Cloudflare tenga una entrada compatible, sin depender de módulos de Node no soportados en Workers.
 
