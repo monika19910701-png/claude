@@ -98,6 +98,27 @@ test('requestApprovalForDraft reuses an existing approval for the same draft', a
   assert.equal(first.approval.approvalId, second.approval.approvalId);
 });
 
+test('requestApprovalForDraft keeps the confirmation phrase stored with the draft', async () => {
+  const statePath = makeTempStatePath();
+  const profilePath = path.join(path.dirname(statePath), 'profile.json');
+  const originalProfile = readJson(path.join(__dirname, '..', 'data', 'profile.json'));
+
+  writeJson(profilePath, {
+    ...originalProfile,
+    approvalPhrases: ['CONFIRMAR PERSONALIZADO']
+  });
+
+  const draft = await saveDraft('FRE-1001', { statePath, profilePath });
+
+  writeJson(profilePath, {
+    ...originalProfile,
+    approvalPhrases: ['CONFIRMAR CAMBIO POSTERIOR']
+  });
+
+  const approvalResult = await requestApprovalForDraft(draft.draftId, { statePath, profilePath });
+  assert.equal(approvalResult.approval.confirmationPhrase, 'CONFIRMAR PERSONALIZADO');
+});
+
 test('invalid jobs are rejected before saving drafts', async () => {
   const statePath = makeTempStatePath();
   const jobsPath = path.join(path.dirname(statePath), 'bad-jobs.json');

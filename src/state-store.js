@@ -4,6 +4,10 @@ const fs = require('node:fs');
 const path = require('node:path');
 const { createId, writeJson } = require('./utils');
 
+function sleep(milliseconds) {
+  Atomics.wait(new Int32Array(new SharedArrayBuffer(4)), 0, 0, milliseconds);
+}
+
 function createEmptyState() {
   return {
     version: 1,
@@ -17,6 +21,7 @@ function createEmptyState() {
 class StateStore {
   constructor(filePath) {
     this.filePath = path.resolve(filePath);
+    this.lockPath = `${this.filePath}.lock`;
   }
 
   load() {
@@ -38,11 +43,35 @@ class StateStore {
     writeJson(this.filePath, state);
   }
 
+  withLock(action) {
+    const maxAttempts = 200;
+
+    for (let attempt = 0; attempt < maxAttempts; attempt += 1) {
+      try {
+        fs.mkdirSync(this.lockPath);
+        try {
+          return action();
+        } finally {
+          fs.rmdirSync(this.lockPath);
+        }
+      } catch (error) {
+        if (error.code !== 'EEXIST') {
+          throw error;
+        }
+        sleep(10);
+      }
+    }
+
+    throw new Error(`No se pudo adquirir el bloqueo del estado en ${this.filePath}.`);
+  }
+
   mutate(mutator) {
-    const state = this.load();
-    const result = mutator(state);
-    this.save(state);
-    return result;
+    return this.withLock(() => {
+      const state = this.load();
+      const result = mutator(state);
+      this.save(state);
+      return result;
+    });
   }
 
   saveAnalysis(jobId, payload) {

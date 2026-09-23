@@ -67,6 +67,7 @@ async function saveDraft(jobId, options = {}) {
   const job = validateJob(await integration.getJob(jobId));
   const analysis = analyzeJob(profile, job);
   const proposal = buildProposal(profile, job);
+  const confirmationPhrase = findApprovalPhrase(profile, 'Enviar propuesta preparada');
   const timestamp = new Date().toISOString();
 
   store.saveAnalysis(job.id || jobId, {
@@ -84,6 +85,7 @@ async function saveDraft(jobId, options = {}) {
     profilePath: path.resolve(profilePath),
     analysis,
     proposal,
+    confirmationPhrase,
     createdAt: timestamp,
     updatedAt: timestamp,
     status: 'draft'
@@ -105,7 +107,6 @@ async function requestApprovalForDraft(draftId, options = {}) {
     };
   }
 
-  const profile = loadProfile(options.profilePath || draft.profilePath || DEFAULT_PROFILE_PATH);
   const approvalPayload = validateApprovalPayload({
     action: 'Enviar propuesta preparada',
     section: `Proyecto ${draft.jobId} - ${draft.jobTitle}`,
@@ -113,7 +114,7 @@ async function requestApprovalForDraft(draftId, options = {}) {
     costOrCommitment: `Oferta: ${draft.proposal.bid} | Plazo: ${draft.proposal.timeline} | ${draft.proposal.milestones.length} hitos`,
     risks: draft.analysis.risks,
     recommendation: draft.analysis.recommendation,
-    confirmationPhrase: findApprovalPhrase(profile, 'Enviar propuesta preparada')
+    confirmationPhrase: draft.confirmationPhrase || findApprovalPhrase(loadProfile(options.profilePath || draft.profilePath || DEFAULT_PROFILE_PATH), 'Enviar propuesta preparada')
   });
 
   const timestamp = new Date().toISOString();
@@ -129,7 +130,7 @@ async function requestApprovalForDraft(draftId, options = {}) {
 
   return {
     approval,
-    text: buildApprovalRequest(approvalPayload)
+    text: buildApprovalRequest(approval)
   };
 }
 
