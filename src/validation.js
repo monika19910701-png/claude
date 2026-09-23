@@ -67,6 +67,9 @@ function validateJob(job) {
 
   if (job.client !== undefined) {
     assertObject(job.client, 'job.client');
+    if (job.client.paymentVerified !== undefined && typeof job.client.paymentVerified !== 'boolean') {
+      throw new Error('job.client.paymentVerified debe ser booleano.');
+    }
     if (job.client.rating !== undefined) assertOptionalNumber(job.client.rating, 'job.client.rating');
     if (job.client.reviews !== undefined) assertOptionalNumber(job.client.reviews, 'job.client.reviews');
     if (job.client.country !== undefined && typeof job.client.country !== 'string') {

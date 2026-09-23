@@ -97,7 +97,15 @@ async function requestApprovalForDraft(draftId, options = {}) {
     throw new Error(`No se encontró el borrador ${draftId}.`);
   }
 
-  const profile = loadProfile(draft.profilePath || options.profilePath || DEFAULT_PROFILE_PATH);
+  const existingApproval = store.findApprovalByDraft(draftId);
+  if (existingApproval) {
+    return {
+      approval: existingApproval,
+      text: buildApprovalRequest(existingApproval)
+    };
+  }
+
+  const profile = loadProfile(options.profilePath || draft.profilePath || DEFAULT_PROFILE_PATH);
   const approvalPayload = validateApprovalPayload({
     action: 'Enviar propuesta preparada',
     section: `Proyecto ${draft.jobId} - ${draft.jobTitle}`,
@@ -161,43 +169,61 @@ async function executeApprovedAction(approvalId, options = {}) {
   if (approval.status !== 'approved') {
     throw new Error('La acción sigue bloqueada: primero debes aprobarla con la frase exacta.');
   }
-  if (store.findExecutionByApproval(approvalId)) {
-    throw new Error('Esta aprobación ya fue ejecutada previamente.');
-  }
 
   const draft = store.getDraft(approval.draftId);
   if (!draft) {
     throw new Error(`No se encontró el borrador asociado ${approval.draftId}.`);
   }
 
-  const executionResult = await integration.submitProposal({
-    approvalId,
-    jobId: approval.jobId,
-    content: approval.content,
-    bid: draft.proposal.bid,
-    timeline: draft.proposal.timeline
-  });
-
   const timestamp = new Date().toISOString();
-  return store.createExecution({
+  const execution = store.createExecutionIfAbsent(approvalId, {
     approvalId,
     draftId: approval.draftId,
     jobId: approval.jobId,
     mode,
-    externalId: executionResult.externalId,
-    provider: executionResult.provider || mode,
-    status: executionResult.status || 'submitted',
+    externalId: `pending-${approvalId}`,
+    provider: mode,
+    status: 'submitting',
     contentSnapshot: approval.content,
     commitmentSnapshot: {
       bid: draft.proposal.bid,
       timeline: draft.proposal.timeline,
       milestones: draft.proposal.milestones
     },
-    remoteSnapshot: executionResult,
+    remoteSnapshot: null,
     createdAt: timestamp,
     updatedAt: timestamp,
     verification: null
   });
+
+  if (execution.status !== 'submitting') {
+    throw new Error('Esta aprobación ya fue ejecutada previamente.');
+  }
+
+  try {
+    const executionResult = await integration.submitProposal({
+      approvalId,
+      jobId: approval.jobId,
+      content: approval.content,
+      bid: draft.proposal.bid,
+      timeline: draft.proposal.timeline
+    });
+
+    return store.updateExecution(execution.executionId, {
+      externalId: executionResult.externalId,
+      provider: executionResult.provider || mode,
+      status: executionResult.status || 'submitted',
+      remoteSnapshot: executionResult,
+      updatedAt: new Date().toISOString()
+    });
+  } catch (error) {
+    store.updateExecution(execution.executionId, {
+      status: 'failed',
+      remoteSnapshot: { message: error.message },
+      updatedAt: new Date().toISOString()
+    });
+    throw error;
+  }
 }
 
 function compareExecution(execution, remoteStatus) {

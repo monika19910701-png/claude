@@ -74,6 +74,30 @@ test('approveAction rejects the wrong confirmation phrase', async () => {
   );
 });
 
+test('approveAction can cancel and keeps execution blocked', async () => {
+  const statePath = makeTempStatePath();
+  const draft = await saveDraft('FRE-1001', { statePath });
+  const approvalResult = await requestApprovalForDraft(draft.draftId, { statePath });
+
+  const cancelled = await approveAction(approvalResult.approval.approvalId, 'cancelar', { statePath });
+  assert.equal(cancelled.status, 'cancelled');
+
+  await assert.rejects(
+    () => executeApprovedAction(approvalResult.approval.approvalId, { statePath }),
+    /primero debes aprobarla/
+  );
+});
+
+test('requestApprovalForDraft reuses an existing approval for the same draft', async () => {
+  const statePath = makeTempStatePath();
+  const draft = await saveDraft('FRE-1001', { statePath });
+
+  const first = await requestApprovalForDraft(draft.draftId, { statePath });
+  const second = await requestApprovalForDraft(draft.draftId, { statePath });
+
+  assert.equal(first.approval.approvalId, second.approval.approvalId);
+});
+
 test('invalid jobs are rejected before saving drafts', async () => {
   const statePath = makeTempStatePath();
   const jobsPath = path.join(path.dirname(statePath), 'bad-jobs.json');

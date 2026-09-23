@@ -38,23 +38,30 @@ class StateStore {
     writeJson(this.filePath, state);
   }
 
-  saveAnalysis(jobId, payload) {
+  mutate(mutator) {
     const state = this.load();
-    state.analyses[jobId] = {
-      analysisId: state.analyses[jobId] ? state.analyses[jobId].analysisId : createId('analysis'),
-      ...payload,
-      jobId
-    };
+    const result = mutator(state);
     this.save(state);
-    return state.analyses[jobId];
+    return result;
+  }
+
+  saveAnalysis(jobId, payload) {
+    return this.mutate((state) => {
+      state.analyses[jobId] = {
+        analysisId: state.analyses[jobId] ? state.analyses[jobId].analysisId : createId('analysis'),
+        ...payload,
+        jobId
+      };
+      return state.analyses[jobId];
+    });
   }
 
   createDraft(payload) {
-    const state = this.load();
-    const draftId = createId('draft');
-    state.drafts[draftId] = { draftId, ...payload };
-    this.save(state);
-    return state.drafts[draftId];
+    return this.mutate((state) => {
+      const draftId = createId('draft');
+      state.drafts[draftId] = { draftId, ...payload };
+      return state.drafts[draftId];
+    });
   }
 
   getDraft(draftId) {
@@ -66,31 +73,44 @@ class StateStore {
   }
 
   createApproval(payload) {
-    const state = this.load();
-    const approvalId = createId('approval');
-    state.approvals[approvalId] = { approvalId, ...payload };
-    this.save(state);
-    return state.approvals[approvalId];
+    return this.mutate((state) => {
+      const approvalId = createId('approval');
+      state.approvals[approvalId] = { approvalId, ...payload };
+      return state.approvals[approvalId];
+    });
   }
 
   getApproval(approvalId) {
     return this.load().approvals[approvalId] || null;
   }
 
-  updateApproval(approvalId, patch) {
-    const state = this.load();
-    if (!state.approvals[approvalId]) return null;
-    state.approvals[approvalId] = { ...state.approvals[approvalId], ...patch };
-    this.save(state);
-    return state.approvals[approvalId];
+  findApprovalByDraft(draftId) {
+    return (
+      Object.values(this.load().approvals).find(
+        (approval) => approval.draftId === draftId && (approval.status === 'pending' || approval.status === 'approved')
+      ) || null
+    );
   }
 
-  createExecution(payload) {
-    const state = this.load();
-    const executionId = createId('execution');
-    state.executions[executionId] = { executionId, ...payload };
-    this.save(state);
-    return state.executions[executionId];
+  updateApproval(approvalId, patch) {
+    return this.mutate((state) => {
+      if (!state.approvals[approvalId]) return null;
+      state.approvals[approvalId] = { ...state.approvals[approvalId], ...patch };
+      return state.approvals[approvalId];
+    });
+  }
+
+  createExecutionIfAbsent(approvalId, payload) {
+    return this.mutate((state) => {
+      const existing = Object.values(state.executions).find((execution) => execution.approvalId === approvalId);
+      if (existing) {
+        return existing;
+      }
+
+      const executionId = createId('execution');
+      state.executions[executionId] = { executionId, ...payload };
+      return state.executions[executionId];
+    });
   }
 
   getExecution(executionId) {
@@ -98,11 +118,11 @@ class StateStore {
   }
 
   updateExecution(executionId, patch) {
-    const state = this.load();
-    if (!state.executions[executionId]) return null;
-    state.executions[executionId] = { ...state.executions[executionId], ...patch };
-    this.save(state);
-    return state.executions[executionId];
+    return this.mutate((state) => {
+      if (!state.executions[executionId]) return null;
+      state.executions[executionId] = { ...state.executions[executionId], ...patch };
+      return state.executions[executionId];
+    });
   }
 
   findExecutionByApproval(approvalId) {
