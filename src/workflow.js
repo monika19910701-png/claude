@@ -107,6 +107,15 @@ function recommendTimeline(job) {
   return '3-5 días';
 }
 
+function localizeTimeline(timeline, language) {
+  if (language === 'en') {
+    return timeline
+      .replace(/\bdías\b/g, 'days')
+      .replace(/\bdía\b/g, 'day');
+  }
+  return timeline;
+}
+
 function recommendationFromScore(score, risks) {
   if (risks.some((risk) => /fuera de freelancer|informacion sensible/i.test(risk))) {
     return 'Rechazar';
@@ -166,7 +175,7 @@ function buildProposal(profile, job) {
   const topSkills = analysis.matchedSkills.slice(0, 3);
   const fallbackSkills = (profile.specialties || []).slice(0, 3);
   const skillsToMention = topSkills.length ? topSkills : fallbackSkills;
-  const timeline = analysis.recommendedTimeline;
+  const timeline = localizeTimeline(analysis.recommendedTimeline, language);
   const bid = analysis.recommendedBid;
 
   if (language === 'es') {

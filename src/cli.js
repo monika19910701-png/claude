@@ -9,7 +9,7 @@ function printHelp() {
   npm start -- review-profile [ruta-profile]
   npm start -- analyze-job <ruta-job> [ruta-profile]
   npm start -- draft-proposal <ruta-job> [ruta-profile]
-  npm start -- prepare-approval <ruta-approval-json]
+  npm start -- prepare-approval <ruta-approval-json>
 
 Archivos por defecto:
   Profile: /home/runner/work/claude/claude/data/profile.json`);
