@@ -3,6 +3,7 @@
 const test = require('node:test');
 const assert = require('node:assert/strict');
 const path = require('node:path');
+const { main } = require('../src/cli');
 const { readJson } = require('../src/utils');
 const { analyzeJob, buildApprovalRequest, buildProposal, reviewProfile } = require('../src/workflow');
 
@@ -72,12 +73,32 @@ test('analyzeJob rejects jobs asking for sensitive information', () => {
   assert.ok(result.risks.some((risk) => /información sensible/i.test(risk)));
 });
 
+test('analyzeJob does not flag generic Gmail-related work as off-platform contact', () => {
+  const result = analyzeJob(profile, {
+    title: 'Gmail inbox cleanup',
+    description: 'Need help organizing labels inside an existing Gmail inbox.',
+    skills: ['Virtual Assistant'],
+    client: { paymentVerified: true },
+    budget: 0
+  });
+
+  assert.ok(!result.risks.some((risk) => /fuera de Freelancer/i.test(risk)));
+  assert.equal(result.budget, 'USD 0');
+});
+
 test('reviewProfile highlights strengths and improvements', () => {
   const review = reviewProfile(profile);
 
   assert.equal(review.suggestedTitle, profile.title);
   assert.ok(review.strengths.length >= 2);
   assert.ok(review.improvements.length >= 2);
+});
+
+test('reviewProfile tolerates missing specialties', () => {
+  const review = reviewProfile({ name: 'Monica', title: 'Data Entry' });
+
+  assert.equal(review.suggestedTitle, 'Data Entry');
+  assert.match(review.summary, /Monica se enfoca en /);
 });
 
 test('buildApprovalRequest preserves the approval template format', () => {
@@ -93,4 +114,10 @@ test('buildApprovalRequest preserves the approval template format', () => {
 
   assert.match(text, /ACCIÓN PROPUESTA:/);
   assert.match(text, /CONFIRMACIÓN NECESARIA:\nCONFIRMAR ENVÍO/);
+});
+
+test('cli commands validate missing required arguments', () => {
+  assert.throws(() => main(['node', 'cli.js', 'analyze-job']), /ruta del archivo JSON del proyecto/);
+  assert.throws(() => main(['node', 'cli.js', 'draft-proposal']), /ruta del archivo JSON del proyecto/);
+  assert.throws(() => main(['node', 'cli.js', 'prepare-approval']), /ruta del archivo JSON de aprobación/);
 });

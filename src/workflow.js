@@ -2,6 +2,14 @@
 
 const { clamp, normalizeText, unique } = require('./utils');
 
+function hasValue(value) {
+  return value !== undefined && value !== null;
+}
+
+function hasBudgetInfo(job) {
+  return hasValue(job.budget) || hasValue(job.minBudget) || hasValue(job.maxBudget);
+}
+
 function collectProfileKeywords(profile) {
   return unique(
     [profile.title, ...(profile.specialties || [])]
@@ -38,10 +46,14 @@ function detectRisks(job) {
   if (job.client && job.client.paymentVerified === false) {
     risks.push('Cliente sin método de pago verificado');
   }
-  if (!job.budget && !(job.minBudget || job.maxBudget)) {
+  if (!hasBudgetInfo(job)) {
     risks.push('Presupuesto no especificado');
   }
-  if (/whatsapp|telegram|gmail|outside freelancer|outside the platform|contact me/i.test(job.description || '')) {
+  if (
+    /whatsapp|telegram|outside freelancer|outside the platform|contact me|share your email|email me at|@gmail\.com|@outlook\.com|@yahoo\.com/i.test(
+      job.description || ''
+    )
+  ) {
     risks.push('Posible intento de sacar la comunicación fuera de Freelancer');
   }
   if (/bank|ssn|passport|id card|license/i.test(description)) {
@@ -63,7 +75,7 @@ function detectAdvantages(profile, job, matchedSkills) {
   if (job.client && job.client.paymentVerified) {
     advantages.push('Cliente con método de pago verificado');
   }
-  if (job.budget || job.minBudget || job.maxBudget) {
+  if (hasBudgetInfo(job)) {
     advantages.push('Presupuesto definido');
   }
   if ((job.proposalCount || 0) <= 10) {
@@ -83,7 +95,7 @@ function computeCompatibility(profile, job, matchedSkills, risks) {
   score += Math.min(keywordMatches, 8) * 3;
 
   if (job.client && job.client.paymentVerified) score += 8;
-  if (job.budget || job.minBudget || job.maxBudget) score += 7;
+  if (hasBudgetInfo(job)) score += 7;
   if ((job.proposalCount || 0) <= 10) score += 5;
 
   score -= risks.length * 8;
@@ -92,12 +104,12 @@ function computeCompatibility(profile, job, matchedSkills, risks) {
 }
 
 function recommendBid(job) {
-  if (job.budget) return `${job.currency || 'USD'} ${job.budget}`;
-  if (job.minBudget && job.maxBudget) {
+  if (hasValue(job.budget)) return `${job.currency || 'USD'} ${job.budget}`;
+  if (hasValue(job.minBudget) && hasValue(job.maxBudget)) {
     const recommended = Math.round((job.minBudget + job.maxBudget) / 2);
     return `${job.currency || 'USD'} ${recommended}`;
   }
-  if (job.minBudget) return `${job.currency || 'USD'} ${job.minBudget}`;
+  if (hasValue(job.minBudget)) return `${job.currency || 'USD'} ${job.minBudget}`;
   return 'Solicitar aclaración de presupuesto antes de ofertar';
 }
 
@@ -143,9 +155,9 @@ function analyzeJob(profile, job) {
     title: job.title,
     id: job.id || 'No especificado',
     url: job.url || 'No especificado',
-    budget: job.budget
+    budget: hasValue(job.budget)
       ? `${job.currency || 'USD'} ${job.budget}`
-      : job.minBudget || job.maxBudget
+      : hasValue(job.minBudget) || hasValue(job.maxBudget)
         ? `${job.currency || 'USD'} ${job.minBudget || '?'} - ${job.maxBudget || '?'}`
         : 'No especificado',
     requiredSkills: job.skills || [],
@@ -223,28 +235,31 @@ function buildProposal(profile, job) {
 }
 
 function reviewProfile(profile) {
+  const specialties = profile.specialties || [];
   const strengths = [];
   const improvements = [];
 
-  if ((profile.specialties || []).length >= 8) {
+  if (specialties.length >= 8) {
     strengths.push('El perfil cubre suficientes habilidades para proyectos de data entry, research y soporte');
   }
   if (/data entry/i.test(profile.title || '')) {
     strengths.push('El título ya comunica una especialidad clara y demandada');
   }
-  if (/ai|chatgpt/i.test(profile.title || '') || (profile.specialties || []).some((skill) => /ai|chatgpt/i.test(skill))) {
+  if (/ai|chatgpt/i.test(profile.title || '') || specialties.some((skill) => /ai|chatgpt/i.test(skill))) {
     strengths.push('Incluye habilidades actuales relacionadas con IA');
   }
 
-  if ((profile.specialties || []).length > 10) {
+  if (specialties.length > 10) {
     improvements.push('Conviene priorizar 6-8 habilidades principales en la presentación pública para mejorar foco');
   }
   improvements.push('Añadir portafolio con 3 ejemplos concretos de data entry, web research y limpieza de datos');
   improvements.push('Usar propuestas personalizadas y no genéricas para elevar la tasa de respuesta');
 
+  const focusArea = specialties.length ? specialties.slice(0, 5).join(', ') : 'sus servicios principales';
+
   return {
     suggestedTitle: profile.title,
-    summary: `${profile.name} se enfoca en ${profile.specialties.slice(0, 5).join(', ')} con objetivo de conseguir proyectos legítimos y bien pagados.`,
+    summary: `${profile.name} se enfoca en ${focusArea} con objetivo de conseguir proyectos legítimos y bien pagados.`,
     strengths,
     improvements
   };
