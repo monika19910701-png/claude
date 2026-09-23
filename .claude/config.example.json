@@ -1,0 +1,7 @@
+{
+  "mode": "real",
+  "baseUrl": "https://tu-servicio-freelancer.example",
+  "token": "tu-token-aqui",
+  "profilePath": "../data/profile.json",
+  "statePath": "./state.json"
+}

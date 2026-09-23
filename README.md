@@ -23,6 +23,31 @@ MVP para preparar un flujo seguro de trabajo entre Claude Co-Work y Freelancer. 
 
 Instalar dependencias no es necesario porque el MVP usa solo módulos nativos.
 
+### Config editable para token
+
+Si quieres poner el token en un archivo editable local, crea tu configuración así:
+
+```bash
+cd claude
+npm start -- init-config
+```
+
+Eso crea `./.claude/config.json` a partir de `./.claude/config.example.json`. Luego edita ese archivo y coloca tu token y tu base URL.
+
+Ejemplo de `./.claude/config.json`:
+
+```json
+{
+  "mode": "real",
+  "baseUrl": "https://tu-servicio-freelancer.example",
+  "token": "tu-token-aqui",
+  "profilePath": "../data/profile.json",
+  "statePath": "./state.json"
+}
+```
+
+`./.claude/config.json` queda fuera de git, así que puedes editarlo sin subir tu token al repositorio.
+
 ### Comandos originales
 
 #### Revisar perfil
@@ -122,6 +147,7 @@ Usa un adaptador HTTP separado de la lógica de negocio. Puedes configurarlo con
 
 - `FREELANCER_API_BASE_URL` o `--base-url=https://...`
 - `FREELANCER_API_TOKEN` o `--token=...`
+- `./.claude/config.json` con `baseUrl` y `token`
 
 Ejemplos:
 
@@ -133,6 +159,13 @@ FREELANCER_API_BASE_URL=https://example.invalid FREELANCER_API_TOKEN=token npm s
 ```bash
 cd claude
 npm start -- list-jobs --mode=real --base-url=https://example.invalid --token=token
+```
+
+```bash
+cd claude
+npm start -- init-config
+# editar ./.claude/config.json
+npm start -- list-jobs
 ```
 
 El adaptador real espera estos endpoints:

@@ -1,6 +1,7 @@
 'use strict';
 
 const path = require('node:path');
+const { DEFAULT_CONFIG_PATH, initConfigFile, loadCliConfig } = require('./config');
 const { readJson } = require('./utils');
 const { analyzeJob, buildApprovalRequest, buildProposal, reviewProfile } = require('./workflow');
 const {
@@ -22,18 +23,20 @@ function printHelp() {
   npm start -- analyze-job <ruta-job> [ruta-profile]
   npm start -- draft-proposal <ruta-job> [ruta-profile]
   npm start -- prepare-approval <ruta-approval-json>
-  npm start -- list-jobs [--mode=local|real] [--jobs=ruta-json] [--state=ruta-state]
-  npm start -- get-job <job-id> [--mode=local|real] [--jobs=ruta-json]
-  npm start -- save-draft <job-id> [--profile=ruta-profile] [--mode=local|real] [--jobs=ruta-json] [--state=ruta-state]
-  npm start -- request-approval <draft-id> [--state=ruta-state]
-  npm start -- approve-action <approval-id> <frase-exacta> [--state=ruta-state]
-  npm start -- execute-action <approval-id> [--mode=local|real] [--jobs=ruta-json] [--state=ruta-state]
-  npm start -- verify-execution <execution-id> [--mode=local|real] [--jobs=ruta-json] [--state=ruta-state]
+  npm start -- init-config [--config=ruta-config-json]
+  npm start -- list-jobs [--config=ruta-config-json] [--mode=local|real] [--jobs=ruta-json] [--state=ruta-state]
+  npm start -- get-job <job-id> [--config=ruta-config-json] [--mode=local|real] [--jobs=ruta-json]
+  npm start -- save-draft <job-id> [--config=ruta-config-json] [--profile=ruta-profile] [--mode=local|real] [--jobs=ruta-json] [--state=ruta-state]
+  npm start -- request-approval <draft-id> [--config=ruta-config-json] [--state=ruta-state]
+  npm start -- approve-action <approval-id> <frase-exacta> [--config=ruta-config-json] [--state=ruta-state]
+  npm start -- execute-action <approval-id> [--config=ruta-config-json] [--mode=local|real] [--jobs=ruta-json] [--state=ruta-state]
+  npm start -- verify-execution <execution-id> [--config=ruta-config-json] [--mode=local|real] [--jobs=ruta-json] [--state=ruta-state]
 
 Archivos por defecto:
   Profile: ${DEFAULT_PROFILE_PATH}
   Jobs locales: ${DEFAULT_JOBS_PATH}
-  Estado local: ${DEFAULT_STATE_PATH}`);
+  Estado local: ${DEFAULT_STATE_PATH}
+  Config local editable: ${DEFAULT_CONFIG_PATH}`);
 }
 
 function getProfile(profilePath) {
@@ -63,13 +66,15 @@ function parseCli(argv) {
 }
 
 function buildRuntimeOptions(options) {
+  const config = loadCliConfig(options.config);
+
   return {
-    mode: options.mode,
-    jobsPath: options.jobs,
-    profilePath: options.profile,
-    statePath: options.state,
-    baseUrl: options['base-url'],
-    token: options.token
+    mode: options.mode || config.mode,
+    jobsPath: options.jobs || config.jobsPath,
+    profilePath: options.profile || config.profilePath,
+    statePath: options.state || config.statePath,
+    baseUrl: options['base-url'] || config.baseUrl,
+    token: options.token || config.token
   };
 }
 
@@ -102,6 +107,11 @@ function main(argv) {
     const profile = getProfile(args[1]);
     const job = readJson(jobPath);
     printJson(buildProposal(profile, job));
+    return;
+  }
+
+  if (command === 'init-config') {
+    console.log(initConfigFile(options.config));
     return;
   }
 
