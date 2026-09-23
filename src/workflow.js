@@ -72,11 +72,12 @@ function detectRisks(job) {
   if (!hasBudgetInfo(job)) {
     risks.push('Presupuesto no especificado');
   }
-  if (
-    /whatsapp|telegram|outside freelancer|outside the platform|contact me|share your email|email me at|conta(?:c)?tame|escribeme al correo|escríbeme al correo|mandame tu correo|mándame tu correo|[\w.+-]+@(gmail|outlook|yahoo)\.com/i.test(
-      job.description || ''
-    )
-  ) {
+  const directOffPlatformTerms = /whatsapp|telegram|outside freelancer|outside the platform/;
+  const contactRequestTerms =
+    /contact me|share your email|email me at|contactame|contacta conmigo|escribeme al correo|mandame tu correo|mandame un email|share your address|send me your email/;
+  const emailChannelTerms = /gmail|outlook|yahoo|correo|email|e-mail/;
+
+  if (directOffPlatformTerms.test(description) || (contactRequestTerms.test(description) && emailChannelTerms.test(description))) {
     risks.push('Posible intento de sacar la comunicación fuera de Freelancer');
   }
   if (/bank|ssn|passport|id card|license|pasaporte|cuenta bancaria|cedula|cédula|dni|documento de identidad/i.test(description)) {
@@ -137,7 +138,7 @@ function recommendBid(job) {
 }
 
 function recommendTimeline(job) {
-  if (job.timelineDays) return `${job.timelineDays} días`;
+  if (hasValue(job.timelineDays)) return `${job.timelineDays} días`;
   const normalizedJobText = extractJobText(job);
   const matchedRule = TIMELINE_RULES.find((rule) =>
     rule.keywords.some((keyword) => normalizedJobText.includes(normalizeText(keyword)))
@@ -185,7 +186,7 @@ function analyzeJob(profile, job) {
     budget: hasValue(job.budget)
       ? `${job.currency || 'USD'} ${job.budget}`
       : hasValue(job.minBudget) || hasValue(job.maxBudget)
-        ? `${job.currency || 'USD'} ${job.minBudget || '?'} - ${job.maxBudget || '?'}`
+        ? `${job.currency || 'USD'} ${hasValue(job.minBudget) ? job.minBudget : '?'} - ${hasValue(job.maxBudget) ? job.maxBudget : '?'}`
         : 'No especificado',
     requiredSkills: job.skills || [],
     clientReputation: job.client

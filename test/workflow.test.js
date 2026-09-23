@@ -60,6 +60,18 @@ test('analyzeJob timeline fallback works without explicit timeline', () => {
   assert.equal(result.recommendedTimeline, '2-3 días');
 });
 
+test('analyzeJob preserves explicit zero-day timeline values', () => {
+  const result = analyzeJob(profile, {
+    title: 'Immediate review',
+    description: 'Quick turnaround required.',
+    skills: ['Excel'],
+    timelineDays: 0,
+    client: { paymentVerified: true }
+  });
+
+  assert.equal(result.recommendedTimeline, '0 días');
+});
+
 test('analyzeJob uses general timeline fallback when no explicit timeline or data-entry skill exists', () => {
   const result = analyzeJob(profile, {
     title: 'Python cleanup script',
@@ -107,6 +119,20 @@ test('analyzeJob does not flag generic Gmail-related work as off-platform contac
 
   assert.ok(!result.risks.some((risk) => /fuera de Freelancer/i.test(risk)));
   assert.equal(result.budget, 'USD 0');
+});
+
+test('analyzeJob does not flag legitimate Outlook inbox work as off-platform contact', () => {
+  const result = analyzeJob(profile, {
+    title: 'Outlook inbox cleanup',
+    description: 'Need help organizing an Outlook inbox and categorizing messages.',
+    skills: ['Virtual Assistant'],
+    client: { paymentVerified: true },
+    minBudget: 0,
+    maxBudget: 20
+  });
+
+  assert.ok(!result.risks.some((risk) => /fuera de Freelancer/i.test(risk)));
+  assert.equal(result.budget, 'USD 0 - 20');
 });
 
 test('reviewProfile highlights strengths and improvements', () => {
