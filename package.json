@@ -1,0 +1,22 @@
+{
+  "name": "claude",
+  "version": "1.0.0",
+  "description": "Safe MVP for Claude Co-Work style Freelancer workflow preparation",
+  "main": "src/index.js",
+  "scripts": {
+    "start": "node src/cli.js",
+    "test": "node --test"
+  },
+  "repository": {
+    "type": "git",
+    "url": "http://localhost:26831/monika19910701-png/claude"
+  },
+  "keywords": [
+    "freelancer",
+    "automation",
+    "approval-workflow",
+    "cli"
+  ],
+  "author": "",
+  "license": "ISC"
+}
