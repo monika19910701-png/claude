@@ -127,7 +127,9 @@ class StateStore {
 
   createExecutionIfAbsent(approvalId, payload) {
     return this.mutate((state) => {
-      const existing = Object.values(state.executions).find((execution) => execution.approvalId === approvalId);
+      const existing = Object.values(state.executions).find(
+        (execution) => execution.approvalId === approvalId && execution.status !== 'failed'
+      );
       if (existing) {
         return existing;
       }

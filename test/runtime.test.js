@@ -8,6 +8,7 @@ const os = require('node:os');
 const path = require('node:path');
 
 const {
+  DEFAULT_PROFILE_PATH,
   approveAction,
   executeApprovedAction,
   getOpportunity,
@@ -119,6 +120,13 @@ test('requestApprovalForDraft keeps the confirmation phrase stored with the draf
   assert.equal(approvalResult.approval.confirmationPhrase, 'CONFIRMAR PERSONALIZADO');
 });
 
+test('saveDraft stores the default profile path when none is provided', async () => {
+  const statePath = makeTempStatePath();
+  const draft = await saveDraft('FRE-1001', { statePath });
+
+  assert.equal(draft.profilePath, DEFAULT_PROFILE_PATH);
+});
+
 test('invalid jobs are rejected before saving drafts', async () => {
   const statePath = makeTempStatePath();
   const jobsPath = path.join(path.dirname(statePath), 'bad-jobs.json');
@@ -223,6 +231,80 @@ test('real mode works with a compatible HTTP service', async () => {
 
     assert.equal(proposals.length, 1);
     assert.equal(verified.verification.verified, true);
+  } finally {
+    await new Promise((resolve, reject) => server.close((error) => (error ? reject(error) : resolve())));
+  }
+});
+
+test('failed submissions can be retried and failed executions cannot be verified', async () => {
+  let submissionAttempts = 0;
+  const server = http.createServer((req, res) => {
+    if (req.method === 'GET' && req.url === '/jobs/REMOTE-FAIL') {
+      res.setHeader('Content-Type', 'application/json');
+      res.end(JSON.stringify({ id: 'REMOTE-FAIL', title: 'Remote Retry Job', description: 'Need Excel support', skills: ['Excel'], client: { paymentVerified: true } }));
+      return;
+    }
+
+    if (req.method === 'POST' && req.url === '/proposals') {
+      submissionAttempts += 1;
+      if (submissionAttempts === 1) {
+        res.statusCode = 500;
+        res.end('temporary error');
+        return;
+      }
+
+      let body = '';
+      req.on('data', (chunk) => {
+        body += chunk;
+      });
+      req.on('end', () => {
+        const payload = JSON.parse(body || '{}');
+        res.setHeader('Content-Type', 'application/json');
+        res.end(JSON.stringify({ externalId: 'remote-retry-1', status: 'submitted', jobId: payload.jobId }));
+      });
+      return;
+    }
+
+    if (req.method === 'GET' && req.url === '/executions/remote-retry-1') {
+      res.setHeader('Content-Type', 'application/json');
+      res.end(JSON.stringify({ externalId: 'remote-retry-1', status: 'submitted', jobId: 'REMOTE-FAIL' }));
+      return;
+    }
+
+    res.statusCode = 404;
+    res.end('not found');
+  });
+
+  await new Promise((resolve) => server.listen(0, resolve));
+  const address = server.address();
+  const baseUrl = `http://127.0.0.1:${address.port}`;
+  const statePath = makeTempStatePath();
+
+  try {
+    const draft = await saveDraft('REMOTE-FAIL', { mode: 'real', statePath, baseUrl, token: 'token' });
+    const approvalResult = await requestApprovalForDraft(draft.draftId, { statePath });
+    await approveAction(approvalResult.approval.approvalId, 'CONFIRMAR ENVÍO', { statePath });
+
+    await assert.rejects(
+      () => executeApprovedAction(approvalResult.approval.approvalId, { mode: 'real', statePath, baseUrl, token: 'token' }),
+      /temporary error/
+    );
+
+    const failedExecutionId = Object.keys(readJson(statePath).executions)[0];
+    await assert.rejects(
+      () => verifyExecution(failedExecutionId, { mode: 'real', statePath, baseUrl, token: 'token' }),
+      /Solo se puede verificar/
+    );
+
+    const retriedExecution = await executeApprovedAction(approvalResult.approval.approvalId, {
+      mode: 'real',
+      statePath,
+      baseUrl,
+      token: 'token'
+    });
+
+    assert.equal(retriedExecution.status, 'submitted');
+    assert.equal(submissionAttempts, 2);
   } finally {
     await new Promise((resolve, reject) => server.close((error) => (error ? reject(error) : resolve())));
   }

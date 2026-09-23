@@ -253,6 +253,9 @@ async function verifyExecution(executionId, options = {}) {
   if (!execution) {
     throw new Error(`No se encontró la ejecución ${executionId}.`);
   }
+  if (!['submitted', 'verified', 'mismatch'].includes(execution.status)) {
+    throw new Error('Solo se puede verificar una ejecución enviada correctamente.');
+  }
 
   const remoteStatus = await integration.getExecutionStatus(execution.externalId, execution);
   const comparison = compareExecution(execution, remoteStatus);
