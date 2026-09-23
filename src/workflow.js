@@ -77,7 +77,7 @@ function detectRisks(job) {
     /contact me|share your email|email me at|contactame|contacta conmigo|escribeme al correo|mandame tu correo|mandame un email|share your address|send me your email/;
   const emailChannelTerms = /gmail|outlook|yahoo|correo|email|e-mail/;
   const suspiciousPaymentTerms =
-    /crypto|bitcoin|usdt|gift card|western union|wire transfer|upfront payment|pago por adelantado|transferencia bancaria/;
+    /crypto|bitcoin|usdt|gift card|western union|wire transfer|upfront payment|pago por adelantado|transferencia bancaria/i;
 
   if (directOffPlatformTerms.test(description) || (contactRequestTerms.test(description) && emailChannelTerms.test(description))) {
     risks.push('Posible intento de sacar la comunicación fuera de Freelancer');
@@ -95,7 +95,7 @@ function detectRisks(job) {
   ) {
     risks.push('Presupuesto potencialmente demasiado bajo para el alcance esperado');
   }
-  if ((/urgent|asap|inmediat|urgente/.test(description) || /urgent|asap|inmediat|urgente/.test(normalizeText(job.title))) && !hasBudgetInfo(job)) {
+  if ((/urgent|asap|inmediat|urgente/i.test(description) || /urgent|asap|inmediat|urgente/i.test(normalizeText(job.title))) && !hasBudgetInfo(job)) {
     risks.push('Urgencia declarada sin presupuesto claro');
   }
   if (job.client && job.client.rating !== undefined && job.client.rating < 4 && (job.client.reviews || 0) < 10) {

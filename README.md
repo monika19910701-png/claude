@@ -1,9 +1,9 @@
 # Claude Co-Work Freelancer MVP
 
-MVP local para preparar un flujo seguro de trabajo entre Claude Co-Work y Freelancer. El proyecto mantiene la lógica de análisis desacoplada de la integración externa y soporta dos modos:
+MVP para preparar un flujo seguro de trabajo entre Claude Co-Work y Freelancer. El proyecto mantiene la lógica de análisis desacoplada de la integración externa y soporta dos modos:
 
-- `local`: simulación segura con archivos JSON y persistencia local;
-- `real`: adaptador HTTP separado para integrarse con un servicio externo compatible.
+- `local`: simulación segura con archivos JSON y persistencia local, sin acciones reales;
+- `real`: adaptador HTTP separado para integrarse con un servicio externo compatible y ejecutar envíos reales contra ese servicio configurado.
 
 ## Qué hace
 

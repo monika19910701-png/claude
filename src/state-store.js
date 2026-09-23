@@ -4,10 +4,6 @@ const fs = require('node:fs');
 const path = require('node:path');
 const { createId, writeJson } = require('./utils');
 
-function sleep(milliseconds) {
-  Atomics.wait(new Int32Array(new SharedArrayBuffer(4)), 0, 0, milliseconds);
-}
-
 function createEmptyState() {
   return {
     version: 1,
@@ -43,32 +39,32 @@ class StateStore {
     writeJson(this.filePath, state);
   }
 
-  withLock(action) {
+  async withLock(action) {
     const maxAttempts = 200;
 
     for (let attempt = 0; attempt < maxAttempts; attempt += 1) {
       try {
-        fs.mkdirSync(this.lockPath);
+        await fs.promises.mkdir(this.lockPath);
         try {
-          return action();
+          return await action();
         } finally {
-          fs.rmdirSync(this.lockPath);
+          await fs.promises.rm(this.lockPath, { recursive: true, force: true });
         }
       } catch (error) {
         if (error.code !== 'EEXIST') {
           throw error;
         }
-        sleep(10);
+        await new Promise((resolve) => setTimeout(resolve, 10));
       }
     }
 
     throw new Error(`No se pudo adquirir el bloqueo del estado en ${this.filePath}.`);
   }
 
-  mutate(mutator) {
-    return this.withLock(() => {
+  async mutate(mutator) {
+    return this.withLock(async () => {
       const state = this.load();
-      const result = mutator(state);
+      const result = await mutator(state);
       this.save(state);
       return result;
     });

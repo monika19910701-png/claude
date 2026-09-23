@@ -70,7 +70,7 @@ async function saveDraft(jobId, options = {}) {
   const confirmationPhrase = findApprovalPhrase(profile, 'Enviar propuesta preparada');
   const timestamp = new Date().toISOString();
 
-  store.saveAnalysis(job.id || jobId, {
+  await store.saveAnalysis(job.id || jobId, {
     mode,
     profilePath: path.resolve(profilePath),
     createdAt: timestamp,
@@ -118,7 +118,7 @@ async function requestApprovalForDraft(draftId, options = {}) {
   });
 
   const timestamp = new Date().toISOString();
-  const approval = store.createApproval({
+  const approval = await store.createApproval({
     ...approvalPayload,
     draftId,
     jobId: draft.jobId,
@@ -177,7 +177,7 @@ async function executeApprovedAction(approvalId, options = {}) {
   }
 
   const timestamp = new Date().toISOString();
-  const execution = store.createExecutionIfAbsent(approvalId, {
+  const execution = await store.createExecutionIfAbsent(approvalId, {
     approvalId,
     draftId: approval.draftId,
     jobId: approval.jobId,
@@ -215,10 +215,11 @@ async function executeApprovedAction(approvalId, options = {}) {
       provider: executionResult.provider || mode,
       status: executionResult.status || 'submitted',
       remoteSnapshot: executionResult,
+      submittedAt: new Date().toISOString(),
       updatedAt: new Date().toISOString()
     });
   } catch (error) {
-    store.updateExecution(execution.executionId, {
+    await store.updateExecution(execution.executionId, {
       status: 'failed',
       remoteSnapshot: { message: error.message },
       updatedAt: new Date().toISOString()
