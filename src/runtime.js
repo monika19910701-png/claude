@@ -201,13 +201,16 @@ async function executeApprovedAction(approvalId, options = {}) {
 }
 
 function compareExecution(execution, remoteStatus) {
+  const hasRemoteValue = (value) => value !== undefined && value !== null;
   const checks = {
-    jobIdMatches: !remoteStatus.jobId || String(remoteStatus.jobId) === String(execution.jobId),
+    jobIdMatches: !hasRemoteValue(remoteStatus.jobId) || String(remoteStatus.jobId) === String(execution.jobId),
     contentMatches:
-      !remoteStatus.proposalText || normalizeText(remoteStatus.proposalText) === normalizeText(execution.contentSnapshot),
-    bidMatches: !remoteStatus.bid || String(remoteStatus.bid) === String(execution.commitmentSnapshot.bid),
+      !hasRemoteValue(remoteStatus.proposalText) ||
+      normalizeText(remoteStatus.proposalText) === normalizeText(execution.contentSnapshot),
+    bidMatches: !hasRemoteValue(remoteStatus.bid) || String(remoteStatus.bid) === String(execution.commitmentSnapshot.bid),
     timelineMatches:
-      !remoteStatus.timeline || String(remoteStatus.timeline) === String(execution.commitmentSnapshot.timeline)
+      !hasRemoteValue(remoteStatus.timeline) ||
+      String(remoteStatus.timeline) === String(execution.commitmentSnapshot.timeline)
   };
 
   return {

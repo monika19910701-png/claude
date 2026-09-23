@@ -28,29 +28,29 @@ Instalar dependencias no es necesario porque el MVP usa solo módulos nativos.
 #### Revisar perfil
 
 ```bash
-cd /home/runner/work/claude/claude
+cd claude
 npm start -- review-profile
 ```
 
 #### Analizar un proyecto
 
 ```bash
-cd /home/runner/work/claude/claude
-npm start -- analyze-job /home/runner/work/claude/claude/data/sample-job.json
+cd claude
+npm start -- analyze-job ./data/sample-job.json
 ```
 
 #### Generar propuesta
 
 ```bash
-cd /home/runner/work/claude/claude
-npm start -- draft-proposal /home/runner/work/claude/claude/data/sample-job.json
+cd claude
+npm start -- draft-proposal ./data/sample-job.json
 ```
 
 #### Preparar solicitud de aprobación desde JSON
 
 ```bash
-cd /home/runner/work/claude/claude
-npm start -- prepare-approval /home/runner/work/claude/claude/data/sample-approval.json
+cd claude
+npm start -- prepare-approval ./data/sample-approval.json
 ```
 
 ### Flujo completo con integración desacoplada
@@ -58,49 +58,49 @@ npm start -- prepare-approval /home/runner/work/claude/claude/data/sample-approv
 #### 1. Listar oportunidades
 
 ```bash
-cd /home/runner/work/claude/claude
+cd claude
 npm start -- list-jobs
 ```
 
 #### 2. Ver detalle de un proyecto
 
 ```bash
-cd /home/runner/work/claude/claude
+cd claude
 npm start -- get-job FRE-1001
 ```
 
 #### 3. Guardar un borrador con análisis y propuesta
 
 ```bash
-cd /home/runner/work/claude/claude
+cd claude
 npm start -- save-draft FRE-1001
 ```
 
 #### 4. Solicitar aprobación del borrador guardado
 
 ```bash
-cd /home/runner/work/claude/claude
+cd claude
 npm start -- request-approval <draft-id>
 ```
 
 #### 5. Aprobar explícitamente con la frase exacta
 
 ```bash
-cd /home/runner/work/claude/claude
+cd claude
 npm start -- approve-action <approval-id> "CONFIRMAR ENVÍO"
 ```
 
 #### 6. Ejecutar la acción ya aprobada
 
 ```bash
-cd /home/runner/work/claude/claude
+cd claude
 npm start -- execute-action <approval-id>
 ```
 
 #### 7. Verificar el resultado posterior
 
 ```bash
-cd /home/runner/work/claude/claude
+cd claude
 npm start -- verify-execution <execution-id>
 ```
 
@@ -108,7 +108,7 @@ npm start -- verify-execution <execution-id>
 
 ### Modo local
 
-Usa `/home/runner/work/claude/claude/data/local-jobs.json` y guarda estado en `/home/runner/work/claude/claude/.claude/state.json`.
+Usa `./data/local-jobs.json` y guarda estado en `./.claude/state.json`.
 
 Opciones útiles:
 
@@ -126,7 +126,7 @@ Usa un adaptador HTTP separado de la lógica de negocio. Configura:
 Y ejecuta, por ejemplo:
 
 ```bash
-cd /home/runner/work/claude/claude
+cd claude
 FREELANCER_API_BASE_URL=https://example.invalid FREELANCER_API_TOKEN=token npm start -- list-jobs --mode=real
 ```
 
@@ -148,14 +148,14 @@ El estado local guarda:
 
 ## Estructura
 
-- `/home/runner/work/claude/claude/src/cli.js`: interfaz CLI
-- `/home/runner/work/claude/claude/src/workflow.js`: reglas de análisis y borradores
-- `/home/runner/work/claude/claude/src/runtime.js`: orquestación del flujo completo
-- `/home/runner/work/claude/claude/src/integrations/`: capa separada de integración local/real
-- `/home/runner/work/claude/claude/src/state-store.js`: persistencia local de estado
-- `/home/runner/work/claude/claude/src/validation.js`: validaciones de entrada y salida
-- `/home/runner/work/claude/claude/data/profile.json`: perfil profesional base
-- `/home/runner/work/claude/claude/data/local-jobs.json`: proyectos de ejemplo para el modo local
+- `src/cli.js`: interfaz CLI
+- `src/workflow.js`: reglas de análisis y borradores
+- `src/runtime.js`: orquestación del flujo completo
+- `src/integrations/`: capa separada de integración local/real
+- `src/state-store.js`: persistencia local de estado
+- `src/validation.js`: validaciones de entrada y salida
+- `data/profile.json`: perfil profesional base
+- `./data/local-jobs.json`: proyectos de ejemplo para el modo local
 
 ## Notas de seguridad
 
