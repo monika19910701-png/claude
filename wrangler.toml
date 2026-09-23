@@ -7,7 +7,7 @@ pages_build_output_dir = "./dist"
 
 [assets]
 directory = "./dist"
-binding = "ASSETS"
+binding = "STATIC_ASSETS"
 html_handling = "drop-trailing-slash"
 not_found_handling = "single-page-application"
 
