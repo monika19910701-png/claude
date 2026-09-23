@@ -2,6 +2,17 @@
 
 const { clamp, normalizeText, unique } = require('./utils');
 
+const TIMELINE_RULES = [
+  {
+    keywords: ['data entry', 'excel', 'google sheets', 'web research', 'lead generation', 'entrada de datos', 'investigacion web'],
+    timeline: '2-3 días'
+  },
+  {
+    keywords: ['python', 'automation', 'automatizacion', 'data cleaning', 'limpieza de datos'],
+    timeline: '3-5 días'
+  }
+];
+
 function hasValue(value) {
   return value !== undefined && value !== null;
 }
@@ -50,13 +61,13 @@ function detectRisks(job) {
     risks.push('Presupuesto no especificado');
   }
   if (
-    /whatsapp|telegram|outside freelancer|outside the platform|contact me|share your email|email me at|@gmail\.com|@outlook\.com|@yahoo\.com/i.test(
+    /whatsapp|telegram|outside freelancer|outside the platform|contact me|share your email|email me at|conta(?:c)?tame|escribeme al correo|escríbeme al correo|mandame tu correo|mándame tu correo|@gmail\.com|@outlook\.com|@yahoo\.com/i.test(
       job.description || ''
     )
   ) {
     risks.push('Posible intento de sacar la comunicación fuera de Freelancer');
   }
-  if (/bank|ssn|passport|id card|license/i.test(description)) {
+  if (/bank|ssn|passport|id card|license|pasaporte|cuenta bancaria|cedula|cédula|dni|documento de identidad/i.test(description)) {
     risks.push('Solicitud potencial de información sensible');
   }
   if ((job.proposalCount || 0) > 25) {
@@ -115,7 +126,11 @@ function recommendBid(job) {
 
 function recommendTimeline(job) {
   if (job.timelineDays) return `${job.timelineDays} días`;
-  if ((job.skills || []).some((skill) => normalizeText(skill).includes('data entry'))) return '2-3 días';
+  const normalizedJobText = extractJobText(job);
+  const matchedRule = TIMELINE_RULES.find((rule) =>
+    rule.keywords.some((keyword) => normalizedJobText.includes(normalizeText(keyword)))
+  );
+  if (matchedRule) return matchedRule.timeline;
   return '3-5 días';
 }
 

@@ -39,6 +39,16 @@ test('buildProposal falls back to Spanish heuristics when language is missing', 
   assert.match(proposal.text, /Hola, revisé tu proyecto/i);
 });
 
+test('buildProposal treats other explicit language codes as English output', () => {
+  const proposal = buildProposal(profile, {
+    ...sampleJob,
+    language: 'pt-BR'
+  });
+
+  assert.equal(proposal.language, 'en');
+  assert.match(proposal.text, /Hello, I reviewed your project/i);
+});
+
 test('analyzeJob timeline fallback works without explicit timeline', () => {
   const result = analyzeJob(profile, {
     title: 'Simple data entry support',
@@ -71,6 +81,19 @@ test('analyzeJob rejects jobs asking for sensitive information', () => {
 
   assert.equal(result.recommendation, 'Rechazar');
   assert.ok(result.risks.some((risk) => /información sensible/i.test(risk)));
+});
+
+test('analyzeJob catches Spanish off-platform and sensitive-info requests', () => {
+  const result = analyzeJob(profile, {
+    title: 'Proyecto urgente',
+    description: 'Contáctame por WhatsApp y envíame tu pasaporte para verificarte.',
+    skills: ['Virtual Assistant'],
+    client: { paymentVerified: true }
+  });
+
+  assert.ok(result.risks.some((risk) => /fuera de Freelancer/i.test(risk)));
+  assert.ok(result.risks.some((risk) => /información sensible/i.test(risk)));
+  assert.equal(result.recommendation, 'Rechazar');
 });
 
 test('analyzeJob does not flag generic Gmail-related work as off-platform contact', () => {
