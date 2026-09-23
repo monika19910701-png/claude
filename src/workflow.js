@@ -13,6 +13,18 @@ const TIMELINE_RULES = [
   }
 ];
 
+const SPANISH_LANGUAGE_HINTS = [
+  'necesito',
+  'busco',
+  'proyecto',
+  'datos',
+  'excel',
+  'investigacion',
+  'limpieza',
+  'asistente',
+  'apoyo'
+];
+
 function hasValue(value) {
   return value !== undefined && value !== null;
 }
@@ -61,7 +73,7 @@ function detectRisks(job) {
     risks.push('Presupuesto no especificado');
   }
   if (
-    /whatsapp|telegram|outside freelancer|outside the platform|contact me|share your email|email me at|conta(?:c)?tame|escribeme al correo|escríbeme al correo|mandame tu correo|mándame tu correo|@gmail\.com|@outlook\.com|@yahoo\.com/i.test(
+    /whatsapp|telegram|outside freelancer|outside the platform|contact me|share your email|email me at|conta(?:c)?tame|escribeme al correo|escríbeme al correo|mandame tu correo|mándame tu correo|[\w.+-]+@(gmail|outlook|yahoo)\.com/i.test(
       job.description || ''
     )
   ) {
@@ -198,7 +210,7 @@ function analyzeJob(profile, job) {
 function detectLanguage(job) {
   if (job.language) return normalizeText(job.language).startsWith('es') ? 'es' : 'en';
   const combined = normalizeText(`${job.title} ${job.description}`);
-  return /\b(necesito|busco|proyecto|datos|excel|investigacion)\b/.test(combined) ? 'es' : 'en';
+  return SPANISH_LANGUAGE_HINTS.some((hint) => combined.includes(hint)) ? 'es' : 'en';
 }
 
 function buildProposal(profile, job) {
