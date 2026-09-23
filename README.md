@@ -175,6 +175,17 @@ El adaptador real espera estos endpoints:
 - `POST /proposals`
 - `GET /executions/:externalId`
 
+## Despliegue en Cloudflare Workers
+
+El repositorio incluye ahora un punto de entrada mínimo para Cloudflare Workers en `src/worker.mjs` y su configuración en `wrangler.jsonc`.
+
+Rutas del worker:
+
+- `/`: devuelve metadatos del servicio
+- `/health`: devuelve un estado básico `ok: true`
+
+Este worker es intencionalmente mínimo para que el build de Cloudflare tenga una entrada compatible, sin depender de módulos de Node no soportados en Workers.
+
 ## Persistencia
 
 El estado local guarda:
