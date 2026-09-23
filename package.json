@@ -18,5 +18,6 @@
     "cli"
   ],
   "author": "",
-  "license": "ISC"
+  "license": "ISC",
+  "packageManager": "npm@10.9.3"
 }
