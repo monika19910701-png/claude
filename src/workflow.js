@@ -76,12 +76,26 @@ function detectRisks(job) {
   const contactRequestTerms =
     /contact me|share your email|email me at|contactame|contacta conmigo|escribeme al correo|mandame tu correo|mandame un email|share your address|send me your email/;
   const emailChannelTerms = /gmail|outlook|yahoo|correo|email|e-mail/;
+  const suspiciousPaymentTerms =
+    /crypto|bitcoin|usdt|gift card|western union|wire transfer|upfront payment|pago por adelantado|transferencia bancaria/;
 
   if (directOffPlatformTerms.test(description) || (contactRequestTerms.test(description) && emailChannelTerms.test(description))) {
     risks.push('Posible intento de sacar la comunicación fuera de Freelancer');
   }
   if (/bank|ssn|passport|id card|license|pasaporte|cuenta bancaria|cedula|cédula|dni|documento de identidad/i.test(description)) {
     risks.push('Solicitud potencial de información sensible');
+  }
+  if (suspiciousPaymentTerms.test(description)) {
+    risks.push('Condiciones de pago potencialmente riesgosas o fuera del flujo normal');
+  }
+  if ((job.budget !== undefined && job.budget <= 15) || (job.maxBudget !== undefined && job.maxBudget <= 15)) {
+    risks.push('Presupuesto potencialmente demasiado bajo para el alcance esperado');
+  }
+  if ((/urgent|asap|inmediat|urgente/.test(description) || /urgent|asap|inmediat|urgente/.test(normalizeText(job.title))) && !hasBudgetInfo(job)) {
+    risks.push('Urgencia declarada sin presupuesto claro');
+  }
+  if (job.client && job.client.rating !== undefined && job.client.rating < 4 && (job.client.reviews || 0) < 10) {
+    risks.push('Cliente con reputación todavía limitada');
   }
   if ((job.proposalCount || 0) > 25) {
     risks.push('Alta competencia por número de propuestas');

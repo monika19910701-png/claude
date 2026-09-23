@@ -108,6 +108,21 @@ test('analyzeJob catches Spanish off-platform and sensitive-info requests', () =
   assert.equal(result.recommendation, 'Rechazar');
 });
 
+test('analyzeJob flags suspicious payment terms and low budget patterns', () => {
+  const result = analyzeJob(profile, {
+    title: 'Urgent assistant needed',
+    description: 'Urgent work. We can pay with crypto or gift card after you contact me on Telegram.',
+    skills: ['Virtual Assistant', 'Data Entry'],
+    budget: 10,
+    client: { paymentVerified: false, rating: 3.8, reviews: 2 }
+  });
+
+  assert.ok(result.risks.some((risk) => /pago potencialmente riesgosas/i.test(risk)));
+  assert.ok(result.risks.some((risk) => /presupuesto potencialmente demasiado bajo/i.test(risk)));
+  assert.ok(result.risks.some((risk) => /reputación todavía limitada/i.test(risk)));
+  assert.equal(result.recommendation, 'Rechazar');
+});
+
 test('analyzeJob does not flag generic Gmail-related work as off-platform contact', () => {
   const result = analyzeJob(profile, {
     title: 'Gmail inbox cleanup',
@@ -169,4 +184,6 @@ test('cli commands validate missing required arguments', () => {
   assert.throws(() => main(['node', 'cli.js', 'analyze-job']), /ruta del archivo JSON del proyecto/);
   assert.throws(() => main(['node', 'cli.js', 'draft-proposal']), /ruta del archivo JSON del proyecto/);
   assert.throws(() => main(['node', 'cli.js', 'prepare-approval']), /ruta del archivo JSON de aprobación/);
+  assert.throws(() => main(['node', 'cli.js', 'get-job']), /id del proyecto/);
+  assert.throws(() => main(['node', 'cli.js', 'request-approval']), /id del borrador/);
 });
