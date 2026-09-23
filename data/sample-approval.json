@@ -1,0 +1,11 @@
+{
+  "action": "Enviar propuesta preparada",
+  "section": "Proyecto FRE-1001 - Data Entry and Web Research for Leads",
+  "content": "Hello, I reviewed your project and can help with accurate data entry, web research, and lead list cleanup in Excel.",
+  "costOrCommitment": "Oferta: USD 55 | Plazo: 3 días | 2 hitos",
+  "risks": [
+    "Ninguno identificado"
+  ],
+  "recommendation": "Aprobar",
+  "confirmationPhrase": "CONFIRMAR ENVÍO"
+}

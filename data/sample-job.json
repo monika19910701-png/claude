@@ -1,0 +1,24 @@
+{
+  "id": "FRE-1001",
+  "title": "Data Entry and Web Research for Leads",
+  "url": "https://www.freelancer.com/projects/example/FRE-1001",
+  "minBudget": 30,
+  "maxBudget": 80,
+  "currency": "USD",
+  "skills": [
+    "Data Entry",
+    "Web Research",
+    "Excel",
+    "Lead Generation"
+  ],
+  "description": "Need accurate data entry and web research to build a clean list of leads in Excel. Please stay on Freelancer for communication.",
+  "language": "en",
+  "proposalCount": 8,
+  "timelineDays": 3,
+  "client": {
+    "paymentVerified": true,
+    "rating": 4.8,
+    "reviews": 29,
+    "country": "United States"
+  }
+}
