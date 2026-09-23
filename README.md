@@ -177,7 +177,7 @@ El adaptador real espera estos endpoints:
 
 ## Despliegue en Cloudflare Workers
 
-El repositorio incluye ahora un punto de entrada mínimo para Cloudflare Workers en `src/worker.mjs` y su configuración en `wrangler.jsonc`.
+El repositorio incluye ahora un punto de entrada mínimo para Cloudflare Workers en `src/worker.mjs` y su configuración en `wrangler.toml`.
 
 Rutas del worker:
 
