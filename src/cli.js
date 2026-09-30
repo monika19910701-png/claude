@@ -2,7 +2,14 @@
 
 const path = require('node:path');
 const { readJson } = require('./utils');
-const { analyzeJob, buildApprovalRequest, buildProposal, reviewProfile } = require('./workflow');
+const {
+  analyzeJob,
+  buildApprovalRequest,
+  buildProposal,
+  executeApproval,
+  reviewProfile,
+  verifyExecution
+} = require('./workflow');
 
 function printHelp() {
   console.log(`Uso:
@@ -10,6 +17,7 @@ function printHelp() {
   npm start -- analyze-job <ruta-job> [ruta-profile]
   npm start -- draft-proposal <ruta-job> [ruta-profile]
   npm start -- prepare-approval <ruta-approval-json>
+  npm start -- execute-approval <ruta-approval-json> "<FRASE DE CONFIRMACIÓN>" [ruta-profile]
 
 Archivos por defecto:
   Profile: ./data/profile.json (resuelto relativo al proyecto)`);
@@ -56,6 +64,19 @@ function main(argv) {
     if (!approvalPath) throw new Error('Debes indicar la ruta del archivo JSON de aprobación.');
     const approval = readJson(approvalPath);
     console.log(buildApprovalRequest(approval));
+    return;
+  }
+
+  if (command === 'execute-approval') {
+    const [approvalPath, confirmation] = args;
+    if (!approvalPath) throw new Error('Debes indicar la ruta del archivo JSON de aprobación.');
+    if (!confirmation) throw new Error('Debes indicar la frase de confirmación exacta.');
+    const approval = readJson(approvalPath);
+    const profile = getProfile(args[2]);
+    const record = executeApproval(approval, confirmation, { allowedPhrases: profile.approvalPhrases });
+    const verification = verifyExecution(approval, record);
+    console.log(JSON.stringify({ ...record, verification }, null, 2));
+    if (record.status !== 'ejecutado') process.exitCode = 1;
     return;
   }
 

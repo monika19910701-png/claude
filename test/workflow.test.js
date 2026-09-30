@@ -5,7 +5,14 @@ const assert = require('node:assert/strict');
 const path = require('node:path');
 const { main } = require('../src/cli');
 const { readJson } = require('../src/utils');
-const { analyzeJob, buildApprovalRequest, buildProposal, reviewProfile } = require('../src/workflow');
+const {
+  analyzeJob,
+  buildApprovalRequest,
+  buildProposal,
+  executeApproval,
+  reviewProfile,
+  verifyExecution
+} = require('../src/workflow');
 
 const profile = readJson(path.join(__dirname, '..', 'data', 'profile.json'));
 const sampleJob = readJson(path.join(__dirname, '..', 'data', 'sample-job.json'));
@@ -169,4 +176,36 @@ test('cli commands validate missing required arguments', () => {
   assert.throws(() => main(['node', 'cli.js', 'analyze-job']), /ruta del archivo JSON del proyecto/);
   assert.throws(() => main(['node', 'cli.js', 'draft-proposal']), /ruta del archivo JSON del proyecto/);
   assert.throws(() => main(['node', 'cli.js', 'prepare-approval']), /ruta del archivo JSON de aprobación/);
+  assert.throws(() => main(['node', 'cli.js', 'execute-approval']), /ruta del archivo JSON de aprobación/);
+  assert.throws(
+    () => main(['node', 'cli.js', 'execute-approval', './data/sample-approval.json']),
+    /frase de confirmación exacta/
+  );
+});
+
+const sampleApproval = readJson(path.join(__dirname, '..', 'data', 'sample-approval.json'));
+
+test('executeApproval runs only with the exact confirmation phrase and verifies', () => {
+  const record = executeApproval(sampleApproval, 'CONFIRMAR ENVÍO', { now: new Date('2026-01-01T00:00:00Z') });
+
+  assert.equal(record.status, 'ejecutado');
+  assert.equal(record.mode, 'simulado');
+  assert.equal(record.timestamp, '2026-01-01T00:00:00.000Z');
+  assert.equal(verifyExecution(sampleApproval, record).verified, true);
+});
+
+test('executeApproval blocks mismatched confirmations', () => {
+  const record = executeApproval(sampleApproval, 'confirmar envio');
+
+  assert.equal(record.status, 'bloqueado');
+  assert.equal(verifyExecution(sampleApproval, record).verified, false);
+});
+
+test('executeApproval honors CANCELAR', () => {
+  assert.equal(executeApproval(sampleApproval, 'CANCELAR').status, 'cancelado');
+});
+
+test('executeApproval blocks rejected recommendations and empty content', () => {
+  assert.equal(executeApproval({ ...sampleApproval, recommendation: 'Rechazar' }, 'CONFIRMAR ENVÍO').status, 'bloqueado');
+  assert.equal(executeApproval({ ...sampleApproval, content: '  ' }, 'CONFIRMAR ENVÍO').status, 'bloqueado');
 });
