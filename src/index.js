@@ -4,12 +4,16 @@ const {
   analyzeJob,
   buildApprovalRequest,
   buildProposal,
-  reviewProfile
+  executeApproval,
+  reviewProfile,
+  verifyExecution
 } = require('./workflow');
 
 module.exports = {
   analyzeJob,
   buildApprovalRequest,
   buildProposal,
-  reviewProfile
+  executeApproval,
+  reviewProfile,
+  verifyExecution
 };

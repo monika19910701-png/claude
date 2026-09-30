@@ -46,6 +46,15 @@ cd claude
 npm start -- prepare-approval ./data/sample-approval.json
 ```
 
+### Ejecutar y verificar una acción aprobada (modo simulado)
+
+```bash
+cd claude
+npm start -- execute-approval ./data/sample-approval.json "CONFIRMAR ENVÍO"
+```
+
+Solo se ejecuta si la frase coincide exactamente con `confirmationPhrase`. `CANCELAR` cancela la acción. El resultado incluye una verificación automática. No se realiza ningún cambio real en Freelancer.
+
 ## Estructura
 
 - `src/cli.js`: interfaz CLI

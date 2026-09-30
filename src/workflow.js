@@ -318,9 +318,70 @@ function buildApprovalRequest(input) {
   ].join('\n');
 }
 
+const DEFAULT_APPROVAL_PHRASES = [
+  'CONFIRMAR ENVÍO',
+  'CONFIRMAR CAMBIO',
+  'CONFIRMAR RESPUESTA',
+  'CONFIRMAR ACEPTACIÓN',
+  'CANCELAR'
+];
+
+function executeApproval(approval, confirmation, options = {}) {
+  const allowedPhrases = options.allowedPhrases || DEFAULT_APPROVAL_PHRASES;
+  const received = String(confirmation || '').trim();
+  const base = {
+    mode: 'simulado',
+    action: approval.action,
+    section: approval.section,
+    requiredConfirmation: approval.confirmationPhrase,
+    receivedConfirmation: received || 'Ninguna',
+    timestamp: (options.now || new Date()).toISOString()
+  };
+
+  if (received === 'CANCELAR') {
+    return { ...base, status: 'cancelado', reason: 'La usuaria canceló la acción' };
+  }
+  if (!allowedPhrases.includes(approval.confirmationPhrase)) {
+    return { ...base, status: 'bloqueado', reason: 'La frase de confirmación de la solicitud no es válida' };
+  }
+  if (received !== approval.confirmationPhrase) {
+    return { ...base, status: 'bloqueado', reason: 'La confirmación recibida no coincide exactamente con la requerida' };
+  }
+  if (normalizeText(approval.recommendation) === 'rechazar') {
+    return { ...base, status: 'bloqueado', reason: 'La recomendación es Rechazar; revisa la solicitud antes de ejecutar' };
+  }
+  if (!String(approval.content || '').trim()) {
+    return { ...base, status: 'bloqueado', reason: 'El contenido final está vacío' };
+  }
+
+  return {
+    ...base,
+    status: 'ejecutado',
+    reason: 'Acción aprobada y registrada localmente; no se realizó ningún cambio real en Freelancer',
+    content: approval.content,
+    costOrCommitment: approval.costOrCommitment
+  };
+}
+
+function verifyExecution(approval, record) {
+  const checks = [
+    { check: 'Estado ejecutado', passed: record.status === 'ejecutado' },
+    { check: 'Confirmación exacta', passed: record.receivedConfirmation === approval.confirmationPhrase },
+    { check: 'Acción coincide', passed: record.action === approval.action },
+    { check: 'Contenido coincide', passed: record.content === approval.content }
+  ];
+
+  return {
+    verified: checks.every((entry) => entry.passed),
+    checks
+  };
+}
+
 module.exports = {
   analyzeJob,
   buildApprovalRequest,
   buildProposal,
-  reviewProfile
+  executeApproval,
+  reviewProfile,
+  verifyExecution
 };
